@@ -11,55 +11,35 @@
 # function, but it seems to be creating a variable "x" that is not reachable 
 # from the global environment, but is available in the environment of the 
 # makeCacheMatrix function
-makeCacheMatrix <- function(x = numeric()) {
-        
-        # holds the cached value or NULL if nothing is cached
-        # initially nothing is cached so set it to NULL
-        cache <- NULL
-        
-        # store a matrix
-        setMatrix <- function(newValue) {
-                x <<- newValue
-                # since the matrix is assigned a new value, flush the cache
-                cache <<- NULL
-        }
-
-        # returns the stored matrix
-        getMatrix <- function() {
-                x
-        }
-
-        # cache the given argument 
-        cacheInverse <- function(solve) {
-                cache <<- solve
-        }
-
-        # get the cached value
-        getInverse <- function() {
-                cache
-        }
-        
-        # return a list. Each named element of the list is a function
-        list(setMatrix = setMatrix, getMatrix = getMatrix, cacheInverse = cacheInverse, getInverse = getInverse)
+makeCacheMatrix <- function(x = matrix()) {
+    i <- NULL
+    set <- function(y) {
+        x <<- y
+        i <<- NULL
+    }
+    get <- function() x
+    setinverse <- function(inv) i <<- inv
+    getinverse <- function() i
+    list(
+        set = set,
+        get = get,
+        setinverse = setinverse,
+        getinverse = getinverse
+    )
 }
 
 
-# The following function calculates the inverse of a "special" matrix created with 
-# makeCacheMatrix
-cacheSolve <- function(y, ...) {
-        # get the cached value
-        inverse <- y$getInverse()
-        # if a cached value exists return it
-        if(!is.null(inverse)) {
-                message("getting cached data")
-                return(inverse)
-        }
-        # otherwise get the matrix, caclulate the inverse and store it in
-        # the cache
-        data <- y$getMatrix()
-        inverse <- solve(data)
-        y$cacheInverse(inverse)
-        
-        # return the inverse
-        inverse
+## Calculate the inverse of the special "matrix" created with the above
+## function, reusing cached result if it is available
+
+cacheSolve <- function(x, ...) {
+    i <- x$getinverse()
+    if(!is.null(i)) {
+        message("getting cached data")
+        return(i)
+    }
+    m <- x$get()
+    i <- solve(m, ...)
+    x$setinverse(i)
+    i
 }
